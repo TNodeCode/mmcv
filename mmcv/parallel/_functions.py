@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from typing import List, Optional, Union
+from packaging import version
 
 import torch
 from torch import Tensor
@@ -72,7 +73,12 @@ class Scatter:
         streams = None
         if input_device == -1 and target_gpus != [-1]:
             # Perform CPU to GPU copies in a background stream
-            streams = [_get_stream(device) for device in target_gpus]
+            ##streams = [_get_stream(device) for device in target_gpus]
+            if version.parse(torch.__version__) >= version.parse('2.1.0'):
+                streams = [_get_stream(torch.device("cuda", device)) for device in target_gpus]
+            else:
+                streams = [_get_stream(device) for device in target_gpus]
+
 
         outputs = scatter(input, target_gpus, streams)
         # Synchronize with the copy stream
